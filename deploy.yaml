@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gender-detection
+  name: gender-detection
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+        app: gender-detection
+  template:
+    metadata:
+      labels:
+        app: gender-detection
+    spec:
+      containers:
+        - env:
+            - name: KAFKA_TOPIC_FACE_IMAGE
+              valueFrom:
+                configMapKeyRef:
+                  key: KAFKA_TOPIC_FACE_IMAGE_INPUT
+                  name: kafka-topic
+            - name: KAFKA_TOPIC_GENDER_RESULT
+              valueFrom:
+                configMapKeyRef:
+                  key: topic-face-result-gender
+                  name: kafka-topic
+          envFrom:
+            - configMapRef:
+                name: kafka-endpoint
+            - configMapRef:
+                name: s3-key
+            - configMapRef:
+                name: s3-endpoint
+          image: supakornbabe/spai-gender-detection:dev-e01f52d
+          imagePullPolicy: Always
+          name: gender-detection
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
